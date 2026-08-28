@@ -1,7 +1,7 @@
 import {getOptions} from './module/options.js';
 import {getSelectors,mergeSelector,selector2id} from './module/selector.js';
 import {reverseId,getItemsById,getChainById,getPairsById} from './module/id.js';
-import {setModeData,getModeData,$mode} from './module/mode.js';
+import {setModeData,switchMode,$mode} from './module/mode.js';
 
 // 对外方法
 let relationship = function (parameter) {
@@ -18,7 +18,7 @@ let relationship = function (parameter) {
         optimal: false       // 最短关系：计算两者之间的最短关系
     }, parameter);
     // 切换模式
-    getModeData(options.mode);
+    switchMode(options.mode);
     let fromSelectors = getSelectors(options.text);
     let toSelectors = getSelectors(options.target);
     if (!toSelectors.length) {

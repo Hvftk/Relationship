@@ -60,11 +60,18 @@ export function reverseId(id, sex) {
 
 // ID列表去重
 export function filterId(arr) {
-    const sameList = arr.filter(item => item === item.replace(/[ol](?=[s|b])/g, 'x').replace(/&[ol]/, ''));
+    const normalize = item => item.replace(/[ol](?=[s|b])/g, 'x').replace(/&[ol]/, '');
+    const sameList = new Set(arr.filter(item => item === normalize(item)));
+    const seen = new Set();
     return arr.filter(item => {
-        const temp = item.replace(/[ol](?=[s|b])/g, 'x').replace(/&[ol]/, '');
-        return sameList.includes(item) || item != temp && !sameList.includes(temp);
-    }).filter((item, idx, arr) => arr.indexOf(item) === idx);
+        const temp = normalize(item);
+        const keep = sameList.has(item) || (item !== temp && !sameList.has(temp));
+        if (keep && !seen.has(item)) {
+            seen.add(item);
+            return true;
+        }
+        return false;
+    });
 };
 
 // 通过ID获取世代数
@@ -93,8 +100,8 @@ export function getItemsById(id) {
         return filterId(ids).map(id => $mode.get(id)[0]);
     };
     // 对排序进行处理
-    if (id.match(/&([\d]+)(,[hw])?$/)) {
-        const num = id.match(/&([\d]+)(,[hw])?$/)[1];
+    const num = id.match(/&([\d]+)(,[hw])?$/)?.[1]||0;
+    if (num) {
         const zh = number2zh(num);
         id = id.replace(/&\d+/g, '');
         if (_sort[id]) {
@@ -141,16 +148,15 @@ export function getItemsById(id) {
 };
 
 // 通过ID获取关系链
-const data = new Map($mode);
-data.set('xb', ['兄弟']);
-data.set('xs', ['姐妹']);
-
 export function getChainById(id, sex = -1) {
     let item = id.split(',').map(sign => {
         const key = sign.replace(/&[ol\d]+/, '');
-        return data.get(key)[0];
+        return ($mode.get(key) || ({
+            'xb': ['兄弟'],
+            'xs': ['姐妹']
+        }[key]) || [''])[0];
     }).join('的');
-    if (sex > -1 && data.has(sex + ',' + id)) {
+    if (sex > -1 && $mode.has(sex + ',' + id)) {
         if (sex == 0) {
             item = '(女性)' + item;
         } else if (sex == 1) {

@@ -7,7 +7,7 @@ import _similar from './rule/similar.js';
 
 import { zh2number } from './utils.js';
 import { reverseId, filterId, getGenById } from './id.js';
-import { $cache } from './cache.js';
+import { $reverse } from './mode.js';
 
 // 获得最简
 const getOptimal = function (options) {
@@ -122,7 +122,7 @@ export function getSelectors(str) {
                 const r_name = name.replace(match[0], '');
                 const num = zh2number(match[0]);
                 [x_name, r_name, name].forEach((name, index) => {
-                    const ids = $cache.get(name);
+                    const ids = $reverse.get(name);
                     if (ids && ids.length) {
                         ids.forEach(i => {
                             const id = i.replace(/(,[hw])$/, '&' + num + '$1').replace(/([^hw]+)$/, '$1&' + num);
@@ -133,7 +133,7 @@ export function getSelectors(str) {
                     }
                 });
             }
-            items = items.concat($cache.get(name) || []);
+            items = items.concat($reverse.get(name) || []);
         });
         // console.log('[keywords]',keywords);
         // 如找不到结果，再是否存在称呼的排行问题(不直接判断，因存在"大舅""三从父兄""三世祖"这样特俗含义的情况)
@@ -282,6 +282,6 @@ export function selector2id(selector, sex) {
     if (selector.match(/,[mwd0](&[ol\d]+)?,w|,[hfs1](&[ol\d]+)?,h/)) {  //同志关系去除
         return [];
     }
-    const result = expandSelector(selector).map(selector => selector.replace(/,[01]/, '').substr(1));  //去前面逗号和性别信息
+    const result = expandSelector(selector).map(selector => selector.replace(/,[01]/, '').slice(1));  //去前面逗号和性别信息
     return filterId(result);
 };
